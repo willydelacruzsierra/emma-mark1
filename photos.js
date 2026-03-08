@@ -10,7 +10,7 @@ window.galleryPhotos = [
     "71aa926a-08f1-41d9-902d-2796d863b263.jpg",
     "9e686804-28f8-4c12-a192-cb08a45bf2b4.jpg",
     "IMG_1762.jpg",
-    "IMG_1952.JPG",
+    "IMG_1952.jpg",
     "IMG_2884.jpg",
     "IMG_3097.jpg",
     "IMG_3147.jpg",
@@ -22,7 +22,6 @@ window.galleryPhotos = [
     "PXL_20250518_055100592.PORTRAIT.jpg",
     "PXL_20250529_085218181.MP.jpg",
     "PXL_20250620_071243009.PORTRAIT.jpg",
-    "dfbed92d-633b-4ab0-834e-ff3fda8b1d99 Copy.JPG",
-    "dji_mimo_20250719_164504_20250719164504_1752950004210_photo.jpg",
+    "dfbed92d-633b-4ab0-834e-ff3fda8b1d99 Copy.jpg",
     "eaf30e65-88d0-40b4-a542-a03e3f7f5e83.jpg"
 ];
