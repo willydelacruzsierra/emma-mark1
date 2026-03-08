@@ -124,14 +124,14 @@
                         .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 40px; }
                         .gallery-item { position: relative; overflow: hidden; border-radius: 15px; aspect-ratio: 1 / 1; box-shadow: 0 10px 20px rgba(0,0,0,0.1); transition: transform 0.3s ease; }
                         .gallery-item:hover { transform: scale(1.03); }
-                        .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+                        .gallery-item img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; user-select: none; -webkit-user-drag: none; }
                         .animate { opacity: 0; transition: opacity 1s ease, transform 1s ease; transform: translateY(20px); }
                         .visible { opacity: 1; transform: translateY(0); }
                     </style>
                     <h2 class="animate">Nuestro Rayito de Sol</h2>
                     <p class="animate">Un año lleno de amor, risas y pequeños grandes momentos.</p>
                     <div class="gallery-grid">
-                        ${(window.galleryPhotos || []).map(src => `<div class="gallery-item animate"><img src="photos/${src}" alt="Emma milestone" loading="lazy"></div>`).join('')}
+                        ${(window.galleryPhotos || []).map(src => `<div class="gallery-item animate" oncontextmenu="return false;"><img src="photos/${src}" alt="Emma milestone" loading="lazy" draggable="false"></div>`).join('')}
                     </div>
                 `;
             }
