@@ -63,6 +63,7 @@
     <emma-invitation></emma-invitation>
     <emma-rsvp></emma-rsvp>
     <emma-footer></emma-footer>
+    <emma-music></emma-music>
 
     <script src="photos.js"></script>
     <script>
@@ -312,6 +313,81 @@
                         <p>&copy; 2026 El Primer Cumpleaños de Emma</p>
                     </footer>
                 `;
+            }
+        });
+
+        // 6. Music Component
+        customElements.define('emma-music', class extends HTMLElement {
+            constructor() {
+                super();
+                this.attachShadow({ mode: 'open' });
+                this.isPlaying = false;
+                this.shadowRoot.innerHTML = `
+                    <style>
+                        .music-btn {
+                            position: fixed;
+                            bottom: 30px;
+                            left: 30px;
+                            background: rgba(255, 255, 255, 0.7);
+                            color: var(--accent-pink, #f06292);
+                            border: none;
+                            padding: 12px;
+                            border-radius: 50%;
+                            cursor: pointer;
+                            z-index: 1000;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            transition: transform 0.3s ease, background 0.3s ease;
+                            opacity: 0.8;
+                            backdrop-filter: blur(5px);
+                        }
+                        .music-btn:hover {
+                            transform: scale(1.1);
+                            background: rgba(255, 255, 255, 0.9);
+                            opacity: 1;
+                        }
+                        .music-btn svg {
+                            width: 24px;
+                            height: 24px;
+                            fill: currentColor;
+                        }
+                        .playing {
+                            animation: pulse 1.5s infinite alternate;
+                        }
+                        @keyframes pulse {
+                            0% { transform: scale(0.95); opacity: 0.7; }
+                            100% { transform: scale(1.05); opacity: 1; }
+                        }
+                    </style>
+                    <button class="music-btn" id="toggleBtn" aria-label="Toggle Background Music">
+                        <svg class="icon play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        <svg class="icon pause-icon" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    </button>
+                    <audio id="bgMusic" loop src="love_and_happiness.mp3"></audio>
+                `;
+            }
+
+            connectedCallback() {
+                const btn = this.shadowRoot.getElementById('toggleBtn');
+                const audio = this.shadowRoot.getElementById('bgMusic');
+                const playIcon = this.shadowRoot.querySelector('.play-icon');
+                const pauseIcon = this.shadowRoot.querySelector('.pause-icon');
+
+                btn.addEventListener('click', () => {
+                    if (this.isPlaying) {
+                        audio.pause();
+                        playIcon.style.display = 'block';
+                        pauseIcon.style.display = 'none';
+                        btn.classList.remove('playing');
+                    } else {
+                        audio.play().catch(e => console.log('Audio playback prevented by browser:', e));
+                        playIcon.style.display = 'none';
+                        pauseIcon.style.display = 'block';
+                        btn.classList.add('playing');
+                    }
+                    this.isPlaying = !this.isPlaying;
+                });
             }
         });
     </script>
