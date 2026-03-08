@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Primer Cumpleaños de Emma</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-pink: #fce4ec;
+            --accent-pink: #f06292;
+            --soft-lavender: #f3e5f5;
+            --accent-purple: #ba68c8;
+            --mint: #e8f5e9;
+            --accent-mint: #81c784;
+            --text-color: #4a4a4a;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-color);
+            background-color: var(--white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Global animation styles for components to use */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+</head>
+<body>
+
+    <emma-hero></emma-hero>
+    <emma-gallery></emma-gallery>
+    <emma-invitation></emma-invitation>
+    <emma-rsvp></emma-rsvp>
+    <emma-footer></emma-footer>
+
+    <script>
+        // --- Web Components Definitions ---
+
+        const observerOptions = { threshold: 0.1 };
+        const globalObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.shadowRoot.querySelectorAll('.animate').forEach(el => {
+                        el.classList.add('visible');
+                    });
+                }
+            });
+        }, observerOptions);
+
+        // 1. Hero Component
+        customElements.define('emma-hero', class extends HTMLElement {
+            constructor() {
+                super();
+                this.attachShadow({ mode: 'open' });
+                this.shadowRoot.innerHTML = `
+                    <style>
+                        :host { display: block; }
+                        header {
+                            height: 100vh;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: center;
+                            align-items: center;
+                            background: linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), 
+                                        url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80');
+                            background-size: cover;
+                            background-position: center;
+                            position: relative;
+                            text-align: center;
+                        }
+                        h1 { font-family: 'Playfair Display', serif; font-size: 4.5rem; color: var(--accent-pink, #f06292); margin-bottom: 10px; }
+                        h2 { font-family: 'Dancing Script', cursive; font-size: 2.5rem; }
+                        p { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; letter-spacing: 2px; text-transform: uppercase; }
+                        .animate { opacity: 0; transition: opacity 1s ease, transform 1s ease; transform: translateY(20px); }
+                        .visible { opacity: 1; transform: translateY(0); }
+                        .scroll-indicator { position: absolute; bottom: 30px; animation: float 2s infinite ease-in-out; font-size: 2rem; color: var(--accent-pink); }
+                        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+                        @media (max-width: 768px) { h1 { font-size: 3rem; } }
+                    </style>
+                    <header>
+                        <div class="hero-content">
+                            <h2 class="animate">Un Año Maravilloso</h2>
+                            <h1 class="animate">¡Emma cumple UN AÑO!</h1>
+                            <p class="animate">Acompáñanos en una celebración mágica</p>
+                        </div>
+                        <div class="scroll-indicator">↓</div>
+                    </header>
+                `;
+            }
+            connectedCallback() { globalObserver.observe(this); }
+        });
+
+        // 2. Gallery Component
+        customElements.define('emma-gallery', class extends HTMLElement {
+            constructor() {
+                super();
+                this.attachShadow({ mode: 'open' });
+                this.shadowRoot.innerHTML = `
+                    <style>
+                        :host { display: block; padding: 80px 20px; max-width: 1200px; margin: 0 auto; text-align: center; }
+                        h2 { font-family: 'Playfair Display', serif; margin-bottom: 10px; font-size: 2.5rem; }
+                        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 40px; }
+                        .gallery-item { position: relative; overflow: hidden; border-radius: 15px; aspect-ratio: 1 / 1; box-shadow: 0 10px 20px rgba(0,0,0,0.1); transition: transform 0.3s ease; }
+                        .gallery-item:hover { transform: scale(1.03); }
+                        .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+                        .animate { opacity: 0; transition: opacity 1s ease, transform 1s ease; transform: translateY(20px); }
+                        .visible { opacity: 1; transform: translateY(0); }
+                    </style>
+                    <h2 class="animate">Nuestro Rayito de Sol</h2>
+                    <p class="animate">Un año lleno de amor, risas y pequeños grandes momentos.</p>
+                    <div class="gallery-grid">
+                        ${[
+                            'https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=600&q=80',
+                            'https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?auto=format&fit=crop&w=600&q=80',
+                            'https://images.unsplash.com/photo-1510333300224-112022839994?auto=format&fit=crop&w=600&q=80',
+                            'https://images.unsplash.com/photo-1544126592-807daa2b565b?auto=format&fit=crop&w=600&q=80',
+                            'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=600&q=80',
+                            'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=600&q=80'
+                        ].map(src => `<div class="gallery-item animate"><img src="${src}" alt="Emma milestone"></div>`).join('')}
+                    </div>
+                `;
+            }
+            connectedCallback() { globalObserver.observe(this); }
+        });
+
+        // 3. Invitation Component
+        customElements.define('emma-invitation', class extends HTMLElement {
+            constructor() {
+                super();
+                this.attachShadow({ mode: 'open' });
+                this.shadowRoot.innerHTML = `
+                    <style>
+                        :host { display: block; padding: 80px 20px; background-color: var(--primary-pink); border-radius: 50px; margin: 40px auto; width: 90%; text-align: center; }
+                        .invitation-card { background: var(--white); padding: 50px; border-radius: 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.05); max-width: 600px; margin: 0 auto; border: 2px dashed var(--accent-pink); }
+                        h2 { font-family: 'Dancing Script', cursive; font-size: 2.5rem; margin-bottom: 20px; }
+                        .details { margin: 30px 0; font-size: 1.2rem; font-family: 'Montserrat', sans-serif; }
+                        .accent-text { color: var(--accent-pink); font-weight: 600; }
+                        .countdown-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; }
+                        .countdown-item { background: var(--primary-pink); padding: 10px; border-radius: 12px; min-width: 70px; }
+                        .countdown-item span { display: block; font-size: 1.5rem; font-weight: 700; color: var(--accent-pink); }
+                        .countdown-item label { font-size: 0.7rem; text-transform: uppercase; font-weight: 600; }
+                        .animate { opacity: 0; transition: opacity 1s ease, transform 1s ease; transform: translateY(20px); }
+                        .visible { opacity: 1; transform: translateY(0); }
+                        @media (max-width: 768px) { .invitation-card { padding: 30px; } }
+                    </style>
+                    <div class="invitation-card animate">
+                        <h2>¡Estás Invitado!</h2>
+                        <div class="details">
+                            <p><span class="accent-text">CUÁNDO:</span> Sábado, 12 de Abril</p>
+                            <p><span class="accent-text">HORA:</span> 2:00 PM - 5:00 PM</p>
+                            <p><span class="accent-text">DÓNDE:</span> El Jardín Secreto</p>
+                            <p>Calle de las Flores 123, País de las Maravillas</p>
+                        </div>
+                        <div id="countdown" class="countdown-container">
+                            <div class="countdown-item"><span id="days">00</span><label>Días</label></div>
+                            <div class="countdown-item"><span id="hours">00</span><label>Horas</label></div>
+                            <div class="countdown-item"><span id="minutes">00</span><label>Min</label></div>
+                            <div class="countdown-item"><span id="seconds">00</span><label>Seg</label></div>
+                        </div>
+                        <p>Acompáñanos a disfrutar de pastel, juegos y mucha diversión para celebrar el primer añito de Emma.</p>
+                    </div>
+                `;
+            }
+            connectedCallback() {
+                globalObserver.observe(this);
+                this.startTimer();
+            }
+            startTimer() {
+                const birthdayDate = new Date("April 12, 2026 14:00:00").getTime();
+                const update = () => {
+                    const now = new Date().getTime();
+                    const distance = birthdayDate - now;
+                    if (distance < 0) {
+                        this.shadowRoot.getElementById("countdown").innerHTML = "<h3>¡Es hora de la fiesta!</h3>";
+                        return;
+                    }
+                    this.shadowRoot.getElementById("days").innerText = Math.floor(distance / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+                    this.shadowRoot.getElementById("hours").innerText = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+                    this.shadowRoot.getElementById("minutes").innerText = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+                    this.shadowRoot.getElementById("seconds").innerText = Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0');
+                };
+                setInterval(update, 1000);
+                update();
+            }
+        });
+
+        // 4. RSVP Component
+        customElements.define('emma-rsvp', class extends HTMLElement {
+            constructor() {
+                super();
+                this.attachShadow({ mode: 'open' });
+                this.shadowRoot.innerHTML = `
+                    <style>
+                        :host { display: block; padding: 80px 20px; text-align: center; }
+                        h2 { font-family: 'Playfair Display', serif; font-size: 2.5rem; margin-bottom: 10px; }
+                        form { max-width: 500px; margin: 40px auto; text-align: left; }
+                        .form-group { margin-bottom: 20px; }
+                        label { display: block; margin-bottom: 5px; font-weight: 600; font-family: 'Montserrat', sans-serif; }
+                        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; }
+                        button { background-color: var(--accent-pink); color: white; border: none; padding: 15px 30px; border-radius: 30px; font-size: 1.1rem; cursor: pointer; width: 100%; transition: background 0.3s ease; font-weight: 600; }
+                        button:hover { background-color: #e91e63; }
+                        .animate { opacity: 0; transition: opacity 1s ease, transform 1s ease; transform: translateY(20px); }
+                        .visible { opacity: 1; transform: translateY(0); }
+                    </style>
+                    <h2 class="animate">¿Podrás venir?</h2>
+                    <p class="animate">Por favor, confímanos antes del 1 de abril</p>
+                    <form class="animate" id="rsvpForm">
+                        <div class="form-group">
+                            <label for="name">Tu Nombre</label>
+                            <input type="text" id="name" required placeholder="Escribe tu nombre completo">
+                        </div>
+                        <div class="form-group">
+                            <label for="guests">Número de Invitados</label>
+                            <select id="guests">
+                                <option value="1">1 Persona</option>
+                                <option value="2">2 Personas</option>
+                                <option value="3">3 Personas</option>
+                                <option value="4">4 o más personas</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Mensaje para Emma (Opcional)</label>
+                            <textarea id="message" rows="4" placeholder="Escribe algo lindo..."></textarea>
+                        </div>
+                        <button type="submit">Enviar Confirmación</button>
+                    </form>
+                `;
+            }
+            connectedCallback() {
+                globalObserver.observe(this);
+                this.shadowRoot.getElementById('rsvpForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const name = this.shadowRoot.getElementById('name').value;
+                    alert(`¡Gracias, ${name}! Hemos recibido tu confirmación. ¡Estamos ansiosos por verte!`);
+                    e.target.reset();
+                });
+            }
+        });
+
+        // 5. Footer Component
+        customElements.define('emma-footer', class extends HTMLElement {
+            constructor() {
+                super();
+                this.attachShadow({ mode: 'open' });
+                this.shadowRoot.innerHTML = `
+                    <style>
+                        footer { padding: 40px; background-color: var(--mint, #e8f5e9); text-align: center; }
+                        .cursive { font-family: 'Dancing Script', cursive; font-size: 1.5rem; margin-bottom: 10px; }
+                        p { font-family: 'Montserrat', sans-serif; }
+                    </style>
+                    <footer>
+                        <p class="cursive">Con amor, la familia de Emma</p>
+                        <p>&copy; 2026 El Primer Cumpleaños de Emma</p>
+                    </footer>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
