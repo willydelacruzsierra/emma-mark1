@@ -54,6 +54,7 @@
     <emma-rsvp></emma-rsvp>
     <emma-footer></emma-footer>
 
+    <script src="photos.js"></script>
     <script>
         // --- Web Components Definitions ---
 
@@ -130,14 +131,7 @@
                     <h2 class="animate">Nuestro Rayito de Sol</h2>
                     <p class="animate">Un año lleno de amor, risas y pequeños grandes momentos.</p>
                     <div class="gallery-grid">
-                        ${[
-                            'https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=600&q=80',
-                            'https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?auto=format&fit=crop&w=600&q=80',
-                            'https://images.unsplash.com/photo-1510333300224-112022839994?auto=format&fit=crop&w=600&q=80',
-                            'https://images.unsplash.com/photo-1544126592-807daa2b565b?auto=format&fit=crop&w=600&q=80',
-                            'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=600&q=80',
-                            'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=600&q=80'
-                        ].map(src => `<div class="gallery-item animate"><img src="${src}" alt="Emma milestone"></div>`).join('')}
+                        ${(window.galleryPhotos || []).map(src => `<div class="gallery-item animate"><img src="photos/${src}" alt="Emma milestone" loading="lazy"></div>`).join('')}
                     </div>
                 `;
             }
@@ -252,7 +246,26 @@
                 this.shadowRoot.getElementById('rsvpForm').addEventListener('submit', (e) => {
                     e.preventDefault();
                     const name = this.shadowRoot.getElementById('name').value;
-                    alert(`¡Gracias, ${name}! Hemos recibido tu confirmación. ¡Estamos ansiosos por verte!`);
+                    const guestsSelect = this.shadowRoot.getElementById('guests');
+                    const guestsText = guestsSelect.options[guestsSelect.selectedIndex].text;
+                    const message = this.shadowRoot.getElementById('message').value;
+                    
+                    // REEMPLAZA ESTO CON TU NÚMERO DE TELÉFONO
+                    // Debe incluir código de país, sin el '+' ni espacios.
+                    // Ejemplo: para México usa '525512345678', para España usa '34612345678'
+                    const phoneNumber = '330672394680'; 
+                    
+                    let text = `¡Hola! Confirmo mi asistencia al cumpleaños de Emma.\n\n`;
+                    text += `*Nombre:* ${name}\n`;
+                    text += `*Invitados:* ${guestsText}\n`;
+                    
+                    if (message.trim() !== '') {
+                        text += `*Mensaje para Emma:* ${message}`;
+                    }
+                    
+                    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(text)}`;
+                    window.open(whatsappUrl, '_blank');
+                    
                     e.target.reset();
                 });
             }
