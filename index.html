@@ -158,9 +158,14 @@
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 2000;
+            /* Above .music-btn (2200) so the code field is never covered */
+            z-index: 4000;
             background: var(--dark-overlay);
             padding: 20px;
+            /* Allow scrolling when viewer content is taller than the viewport */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
         }
 
         .modal-backdrop.open {
@@ -169,20 +174,28 @@
 
         .viewer {
             width: min(1200px, 95vw);
-            max-height: 90vh;
+            max-height: min(92vh, 100%);
+            min-height: 0;
             position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 12px;
+            margin: auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
         }
 
         .viewer img {
             width: auto;
             max-width: 100%;
-            max-height: calc(90vh - 100px);
+            /* Leave room for buttons + code panel without pushing input off-screen */
+            max-height: min(52vh, calc(92vh - 220px));
             border-radius: 16px;
             box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+            flex-shrink: 0;
         }
 
         .viewer-actions {
@@ -219,58 +232,105 @@
             color: #fff;
         }
 
-        .code-panel {
+        /* Native <dialog> — top layer, reliable keyboard/focus on mobile (avoids nested input bugs in fixed overlays) */
+        dialog.code-dialog:not([open]) {
             display: none;
-            margin-top: 8px;
-            background: rgba(255, 255, 255, 0.96);
-            border-radius: 14px;
-            padding: 14px;
-            width: min(360px, 94vw);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.24);
         }
 
-        .code-panel.open {
-            display: block;
+        .code-dialog {
+            border: none;
+            border-radius: 20px;
+            padding: 0;
+            width: min(430px, 94vw);
+            max-width: 94vw;
+            margin: auto;
+            background: linear-gradient(180deg, #fff9fd 0%, #ffffff 100%);
+            box-shadow: 0 24px 56px rgba(122, 35, 81, 0.28);
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-color);
+            overflow: hidden;
         }
 
-        .code-panel p {
-            font-size: 0.86rem;
-            margin-bottom: 8px;
+        .code-dialog::backdrop {
+            background: rgba(20, 10, 20, 0.62);
+            backdrop-filter: blur(3px);
+        }
+
+        .code-dialog-inner {
+            padding: 22px;
+            border: 2px solid #f7d8e7;
+            border-radius: 20px;
+        }
+
+        .code-dialog h4 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2rem;
+            line-height: 1.1;
+            margin-bottom: 10px;
             text-align: center;
+            color: #b0467b;
         }
 
-        .code-row {
+        .code-dialog-subtitle {
+            text-align: center;
+            font-size: 0.9rem;
+            margin-bottom: 14px;
+            color: #6d5a68;
+        }
+
+        .code-dialog .code-row {
             display: flex;
             gap: 8px;
+            align-items: stretch;
         }
 
-        .code-row input {
-            width: 100%;
+        .code-dialog .code-row input {
+            flex: 1;
+            min-width: 0;
             border: 1px solid #d9bfd2;
             border-radius: 10px;
-            padding: 10px;
+            padding: 12px;
             outline: none;
             font-family: inherit;
             text-align: center;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
+            font-size: 1.1rem;
             font-weight: 700;
+            -webkit-user-select: text;
+            user-select: text;
+            touch-action: manipulation;
+            background: #fff;
         }
 
-        .code-row button {
+        .code-dialog .code-row button[type="submit"] {
             border: none;
             border-radius: 10px;
-            padding: 10px 14px;
-            background: #7a2351;
+            padding: 10px 16px;
+            background: var(--accent-pink);
             color: #fff;
             font-weight: 700;
             cursor: pointer;
+            font-family: inherit;
+        }
+
+        .code-dialog-cancel {
+            margin-top: 12px;
+            width: 100%;
+            border: 1px solid #e4c9d8;
+            background: #fff4fa;
+            border-radius: 10px;
+            padding: 10px;
+            font-weight: 700;
+            color: #734a63;
+            cursor: pointer;
+            font-family: inherit;
         }
 
         .code-status {
-            min-height: 20px;
-            margin-top: 8px;
+            min-height: 22px;
+            margin-top: 10px;
             text-align: center;
-            font-size: 0.82rem;
+            font-size: 0.86rem;
             font-weight: 600;
         }
 
@@ -298,6 +358,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        /* Don't intercept taps meant for the lightbox / code field */
+        body.lightbox-open .music-btn {
+            pointer-events: none;
+            opacity: 0.35;
         }
 
         .music-btn svg {
@@ -389,16 +455,23 @@
                 <button class="btn btn-close" id="closeViewerBtn" type="button">Cerrar</button>
             </div>
             <p class="viewer-download-note">Descarga en alta calidad disponible con codigo secreto</p>
-            <div class="code-panel" id="codePanel">
-                <p>Ingresa el código secreto para descargar</p>
-                <div class="code-row">
-                    <input id="secretInput" type="password" inputmode="numeric" placeholder="******" maxlength="6" aria-label="Código secreto para descargar">
-                    <button id="validateCodeBtn" type="button">Validar</button>
-                </div>
-                <div class="code-status" id="codeStatus"></div>
-            </div>
         </div>
     </div>
+
+    <dialog id="codeDialog" class="code-dialog" aria-labelledby="codeDialogTitle">
+        <div class="code-dialog-inner">
+            <h4 id="codeDialogTitle">Código para descargar</h4>
+            <p class="code-dialog-subtitle">Ingresa el código secreto de la familia</p>
+            <form id="codeForm" action="#" method="post">
+                <div class="code-row">
+                    <input id="secretInput" type="text" inputmode="numeric" maxlength="6" placeholder="6 dígitos" autocomplete="one-time-code" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-label="Código secreto de 6 dígitos">
+                    <button type="submit">Validar</button>
+                </div>
+                <div class="code-status" id="codeStatus" role="status"></div>
+                <button type="button" class="code-dialog-cancel" id="codeDialogCancel">Cancelar</button>
+            </form>
+        </div>
+    </dialog>
 
     <button class="music-btn" id="toggleMusicBtn" type="button" aria-label="Reproducir o pausar música">
         <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -421,9 +494,10 @@
         const viewerImage = document.getElementById('viewerImage');
         const closeViewerBtn = document.getElementById('closeViewerBtn');
         const downloadBtn = document.getElementById('downloadBtn');
-        const codePanel = document.getElementById('codePanel');
+        const codeDialog = document.getElementById('codeDialog');
+        const codeForm = document.getElementById('codeForm');
+        const codeDialogCancel = document.getElementById('codeDialogCancel');
         const secretInput = document.getElementById('secretInput');
-        const validateCodeBtn = document.getElementById('validateCodeBtn');
         const codeStatus = document.getElementById('codeStatus');
 
         const toggleMusicBtn = document.getElementById('toggleMusicBtn');
@@ -509,17 +583,48 @@
             selectedPhotoPath = photoPath;
             selectedDownloadPath = downloadPath;
             viewerImage.src = photoPath;
-            codePanel.classList.remove('open');
+            if (codeDialog.open) {
+                codeDialog.close();
+            }
+            secretInput.value = '';
             codeStatus.textContent = '';
             codeStatus.className = 'code-status';
-            secretInput.value = '';
             lightbox.classList.add('open');
             lightbox.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('lightbox-open');
         }
 
         function closeViewer() {
+            if (codeDialog.open) {
+                codeDialog.close();
+            }
             lightbox.classList.remove('open');
             lightbox.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('lightbox-open');
+        }
+
+        function openCodeDialog() {
+            codeStatus.textContent = '';
+            codeStatus.className = 'code-status';
+            secretInput.value = '';
+            if (typeof codeDialog.showModal === 'function') {
+                codeDialog.showModal();
+                setTimeout(() => {
+                    secretInput.focus();
+                    secretInput.select();
+                }, 100);
+            } else {
+                const raw = window.prompt('Código secreto (6 dígitos):', '');
+                if (raw === null) {
+                    return;
+                }
+                const entered = String(raw).replace(/\D/g, '');
+                if (entered === SECRET_CODE) {
+                    triggerDownload(selectedDownloadPath || selectedPhotoPath);
+                } else {
+                    window.alert('Código incorrecto.');
+                }
+            }
         }
 
         function triggerDownload(filePath) {
@@ -532,26 +637,27 @@
             downloadLink.remove();
         }
 
-        downloadBtn.addEventListener('click', () => {
-            codePanel.classList.toggle('open');
-            secretInput.focus();
+        downloadBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            openCodeDialog();
         });
 
-        validateCodeBtn.addEventListener('click', () => {
-            if (secretInput.value === SECRET_CODE) {
-                codeStatus.textContent = 'Codigo correcto. Descarga iniciada.';
+        codeForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const entered = String(secretInput.value || '').replace(/\D/g, '');
+            if (entered === SECRET_CODE) {
+                codeStatus.textContent = 'Código correcto. Descarga iniciada.';
                 codeStatus.className = 'code-status success';
+                codeDialog.close();
                 triggerDownload(selectedDownloadPath || selectedPhotoPath);
             } else {
-                codeStatus.textContent = 'Codigo incorrecto. Intenta de nuevo.';
+                codeStatus.textContent = 'Código incorrecto. Intenta de nuevo.';
                 codeStatus.className = 'code-status error';
             }
         });
 
-        secretInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                validateCodeBtn.click();
-            }
+        codeDialogCancel.addEventListener('click', () => {
+            codeDialog.close();
         });
 
         closeViewerBtn.addEventListener('click', closeViewer);
@@ -562,7 +668,13 @@
         });
 
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && lightbox.classList.contains('open')) {
+            if (event.key !== 'Escape') {
+                return;
+            }
+            if (codeDialog.open) {
+                return;
+            }
+            if (lightbox.classList.contains('open')) {
                 closeViewer();
             }
         });
