@@ -64,39 +64,61 @@
             margin: 40px auto 60px;
         }
 
-        .memory-title {
-            text-align: center;
-            margin-bottom: 28px;
-        }
-
-        .memory-title h3 {
-            font-family: 'Playfair Display', serif;
-            font-size: clamp(1.7rem, 3vw, 2.5rem);
-            margin-bottom: 8px;
-        }
-
-        .memory-title p {
-            font-size: 0.98rem;
-            opacity: 0.86;
-        }
-
         .mosaic-grid {
-            column-count: 4;
+            column-count: 2;
             column-gap: 16px;
         }
 
-        .featured-wrap {
-            margin-top: 28px;
+        /* Featured (all.webp) in the center column with extra photos below it (thirds split)
+           so the middle column is not an empty strip under the hero image. */
+        .gallery-root.has-featured {
             display: flex;
-            justify-content: center;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 20px;
         }
 
-        .featured-wrap .tile {
-            width: min(920px, 100%);
+        .gallery-root.has-featured .gallery-left,
+        .gallery-root.has-featured .gallery-right {
+            flex: 1 1 0;
+            min-width: 0;
         }
 
-        .featured-wrap .tile img {
-            max-height: 620px;
+        .gallery-root.has-featured .gallery-center {
+            flex: 0 0 clamp(260px, 28vw, 480px);
+            width: clamp(260px, 28vw, 480px);
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .gallery-root:not(.has-featured) {
+            display: block;
+        }
+
+        .gallery-root:not(.has-featured) .gallery-center,
+        .gallery-root:not(.has-featured) .gallery-right {
+            display: none;
+        }
+
+        .gallery-root:not(.has-featured) .gallery-left {
+            column-count: 4;
+        }
+
+        .gallery-center-stack {
+            column-count: 2;
+            column-gap: 16px;
+        }
+
+        .gallery-center .tile--hero {
+            width: 100%;
+        }
+
+        .gallery-center .tile--hero img {
+            width: 100%;
+            min-height: 280px;
+            max-height: min(72vh, 620px);
             object-fit: cover;
         }
 
@@ -297,19 +319,41 @@
         }
 
         @media (max-width: 1024px) {
-            .mosaic-grid {
+            .gallery-root:not(.has-featured) .gallery-left {
                 column-count: 3;
             }
         }
 
-        @media (max-width: 700px) {
-            .mosaic-grid {
+        @media (max-width: 900px) {
+            .gallery-root.has-featured {
+                flex-direction: column;
+            }
+
+            .gallery-root.has-featured .gallery-left {
+                order: 1;
+            }
+
+            .gallery-root.has-featured .gallery-center {
+                order: 2;
+                width: 100%;
+                max-width: none;
+                flex-basis: auto;
+                align-self: center;
+            }
+
+            .gallery-root.has-featured .gallery-right {
+                order: 3;
+            }
+            .gallery-root:not(.has-featured) .gallery-left {
                 column-count: 2;
             }
         }
 
         @media (max-width: 480px) {
             .mosaic-grid {
+                column-count: 1;
+            }
+            .gallery-root:not(.has-featured) .gallery-left {
                 column-count: 1;
             }
             .viewer-actions {
@@ -330,12 +374,11 @@
     </header>
 
     <main class="gallery-wrap">
-        <div class="memory-title">
-            <h3>Galería de la Fiesta</h3>
-            <p>Haz clic en una foto para abrirla en tamaño completo.</p>
+        <div class="gallery-root" id="galleryRoot">
+            <div class="gallery-side gallery-left mosaic-grid" id="galleryLeft"></div>
+            <div class="gallery-center" id="galleryCenter"></div>
+            <div class="gallery-side gallery-right mosaic-grid" id="galleryRight"></div>
         </div>
-        <div class="mosaic-grid" id="gallery"></div>
-        <div class="featured-wrap" id="featuredPhoto"></div>
     </main>
 
     <div class="modal-backdrop" id="lightbox" aria-hidden="true">
@@ -370,8 +413,10 @@
 
     <script src="photos.js"></script>
     <script>
-        const gallery = document.getElementById('gallery');
-        const featuredPhoto = document.getElementById('featuredPhoto');
+        const galleryRoot = document.getElementById('galleryRoot');
+        const galleryLeft = document.getElementById('galleryLeft');
+        const galleryCenter = document.getElementById('galleryCenter');
+        const galleryRight = document.getElementById('galleryRight');
         const lightbox = document.getElementById('lightbox');
         const viewerImage = document.getElementById('viewerImage');
         const closeViewerBtn = document.getElementById('closeViewerBtn');
@@ -392,6 +437,22 @@
         let selectedDownloadPath = '';
         let musicPlaying = false;
 
+        function tileMarkup(photo, index) {
+            return `
+                <button class="tile" type="button" data-photo="${photo.src}" data-download="${photo.downloadSrc}">
+                    <img src="${photo.src}" alt="Foto ${index + 1} de la fiesta de Emma" loading="lazy">
+                </button>
+            `;
+        }
+
+        function bindTileClicks(container) {
+            container.querySelectorAll('.tile').forEach((tile) => {
+                tile.addEventListener('click', () => {
+                    openViewer(tile.dataset.photo, tile.dataset.download);
+                });
+            });
+        }
+
         function buildGallery() {
             const normalizedPhotos = photos.map((photoItem) => {
                 const fileName = typeof photoItem === 'string' ? photoItem : photoItem.file;
@@ -404,31 +465,44 @@
             const regularPhotos = normalizedPhotos.filter((photo) => !photo.isFeatured);
             const featured = normalizedPhotos.find((photo) => photo.isFeatured);
 
-            gallery.innerHTML = regularPhotos.map((photo, index) => {
-                return `
-                    <button class="tile" type="button" data-photo="${photo.src}" data-download="${photo.downloadSrc}">
-                        <img src="${photo.src}" alt="Foto ${index + 1} de la fiesta de Emma" loading="lazy">
+            if (featured) {
+                galleryRoot.classList.add('has-featured');
+                const n = regularPhotos.length;
+                /* Thirds: left | center (hero + stack) | right — fills the middle column so no blank strip */
+                let leftCount = Math.floor(n / 3);
+                let centerCount = Math.floor(n / 3);
+                let rightCount = n - leftCount - centerCount;
+                if (centerCount === 0 && n > 0) {
+                    centerCount = 1;
+                    if (rightCount > 0) {
+                        rightCount--;
+                    } else {
+                        leftCount--;
+                    }
+                }
+                const leftPhotos = regularPhotos.slice(0, leftCount);
+                const centerPhotos = regularPhotos.slice(leftCount, leftCount + centerCount);
+                const rightPhotos = regularPhotos.slice(leftCount + centerCount);
+
+                galleryLeft.innerHTML = leftPhotos.map((photo, index) => tileMarkup(photo, index)).join('');
+                galleryCenter.innerHTML = `
+                    <button class="tile tile--hero" type="button" data-photo="${featured.src}" data-download="${featured.downloadSrc}">
+                        <img src="${featured.src}" alt="Foto grupal de la fiesta de Emma" loading="lazy">
                     </button>
+                    <div class="gallery-center-stack">${centerPhotos.map((photo, i) => tileMarkup(photo, leftCount + i)).join('')}</div>
                 `;
-            }).join('');
+                galleryRight.innerHTML = rightPhotos.map((photo, i) => tileMarkup(photo, leftCount + centerCount + i)).join('');
 
-            featuredPhoto.innerHTML = featured ? `
-                <button class="tile tile-featured" type="button" data-photo="${featured.src}" data-download="${featured.downloadSrc}">
-                    <img src="${featured.src}" alt="Foto grupal final de la fiesta de Emma" loading="lazy">
-                </button>
-            ` : '';
-
-            gallery.querySelectorAll('.tile').forEach((tile) => {
-                tile.addEventListener('click', () => {
-                    openViewer(tile.dataset.photo, tile.dataset.download);
-                });
-            });
-
-            featuredPhoto.querySelectorAll('.tile').forEach((tile) => {
-                tile.addEventListener('click', () => {
-                    openViewer(tile.dataset.photo, tile.dataset.download);
-                });
-            });
+                bindTileClicks(galleryLeft);
+                bindTileClicks(galleryCenter);
+                bindTileClicks(galleryRight);
+            } else {
+                galleryRoot.classList.remove('has-featured');
+                galleryLeft.innerHTML = regularPhotos.map((photo, index) => tileMarkup(photo, index)).join('');
+                galleryCenter.innerHTML = '';
+                galleryRight.innerHTML = '';
+                bindTileClicks(galleryLeft);
+            }
         }
 
         function openViewer(photoPath, downloadPath) {
