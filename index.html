@@ -85,6 +85,21 @@
             column-gap: 16px;
         }
 
+        .featured-wrap {
+            margin-top: 28px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .featured-wrap .tile {
+            width: min(920px, 100%);
+        }
+
+        .featured-wrap .tile img {
+            max-height: 620px;
+            object-fit: cover;
+        }
+
         .tile {
             border: none;
             width: 100%;
@@ -113,21 +128,6 @@
             object-fit: cover;
             user-select: none;
             -webkit-user-drag: none;
-        }
-
-        .tile-label {
-            position: absolute;
-            bottom: 8px;
-            left: 8px;
-            padding: 5px 10px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.84);
-            backdrop-filter: blur(4px);
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: #7a2351;
-            letter-spacing: 0.4px;
-            text-transform: uppercase;
         }
 
         .modal-backdrop {
@@ -331,6 +331,7 @@
             <p>Haz clic en una foto para abrirla en tamaño completo.</p>
         </div>
         <div class="mosaic-grid" id="gallery"></div>
+        <div class="featured-wrap" id="featuredPhoto"></div>
     </main>
 
     <div class="modal-backdrop" id="lightbox" aria-hidden="true">
@@ -366,6 +367,7 @@
     <script src="photos.js"></script>
     <script>
         const gallery = document.getElementById('gallery');
+        const featuredPhoto = document.getElementById('featuredPhoto');
         const lightbox = document.getElementById('lightbox');
         const viewerImage = document.getElementById('viewerImage');
         const closeViewerBtn = document.getElementById('closeViewerBtn');
@@ -387,20 +389,38 @@
         let musicPlaying = false;
 
         function buildGallery() {
-            gallery.innerHTML = photos.map((photoItem, index) => {
+            const normalizedPhotos = photos.map((photoItem) => {
                 const fileName = typeof photoItem === 'string' ? photoItem : photoItem.file;
                 const src = typeof photoItem === 'string' ? `photos/${photoItem}` : photoItem.display;
                 const downloadSrc = typeof photoItem === 'string' ? `party-downloads/${fileName}` : photoItem.download;
-                const sticker = (index % 5 === 0) ? 'Fiesta' : (index % 3 === 0 ? 'Momentos' : 'Emma');
+                const isFeatured = fileName.toLowerCase() === 'all.webp';
+                return { fileName, src, downloadSrc, isFeatured };
+            });
+
+            const regularPhotos = normalizedPhotos.filter((photo) => !photo.isFeatured);
+            const featured = normalizedPhotos.find((photo) => photo.isFeatured);
+
+            gallery.innerHTML = regularPhotos.map((photo, index) => {
                 return `
-                    <button class="tile" type="button" data-photo="${src}" data-download="${downloadSrc}">
-                        <img src="${src}" alt="Foto ${index + 1} de la fiesta de Emma" loading="lazy">
-                        <span class="tile-label">${sticker}</span>
+                    <button class="tile" type="button" data-photo="${photo.src}" data-download="${photo.downloadSrc}">
+                        <img src="${photo.src}" alt="Foto ${index + 1} de la fiesta de Emma" loading="lazy">
                     </button>
                 `;
             }).join('');
 
+            featuredPhoto.innerHTML = featured ? `
+                <button class="tile tile-featured" type="button" data-photo="${featured.src}" data-download="${featured.downloadSrc}">
+                    <img src="${featured.src}" alt="Foto grupal final de la fiesta de Emma" loading="lazy">
+                </button>
+            ` : '';
+
             gallery.querySelectorAll('.tile').forEach((tile) => {
+                tile.addEventListener('click', () => {
+                    openViewer(tile.dataset.photo, tile.dataset.download);
+                });
+            });
+
+            featuredPhoto.querySelectorAll('.tile').forEach((tile) => {
                 tile.addEventListener('click', () => {
                     openViewer(tile.dataset.photo, tile.dataset.download);
                 });
