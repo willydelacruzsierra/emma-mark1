@@ -169,6 +169,14 @@
             align-items: center;
         }
 
+        .viewer-download-note {
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            color: rgba(255, 255, 255, 0.92);
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+        }
+
         .btn {
             border: none;
             border-radius: 999px;
@@ -332,6 +340,7 @@
                 <button class="btn btn-download" id="downloadBtn" type="button">Descargar foto</button>
                 <button class="btn btn-close" id="closeViewerBtn" type="button">Cerrar</button>
             </div>
+            <p class="viewer-download-note">Descarga en alta calidad disponible con codigo secreto</p>
             <div class="code-panel" id="codePanel">
                 <p>Ingresa el código secreto para descargar</p>
                 <div class="code-row">
@@ -374,14 +383,17 @@
         const SECRET_CODE = '180225';
         const photos = window.galleryPhotos || [];
         let selectedPhotoPath = '';
+        let selectedDownloadPath = '';
         let musicPlaying = false;
 
         function buildGallery() {
-            gallery.innerHTML = photos.map((fileName, index) => {
-                const src = `photos/${fileName}`;
+            gallery.innerHTML = photos.map((photoItem, index) => {
+                const fileName = typeof photoItem === 'string' ? photoItem : photoItem.file;
+                const src = typeof photoItem === 'string' ? `photos/${photoItem}` : photoItem.display;
+                const downloadSrc = typeof photoItem === 'string' ? `party-downloads/${fileName}` : photoItem.download;
                 const sticker = (index % 5 === 0) ? 'Fiesta' : (index % 3 === 0 ? 'Momentos' : 'Emma');
                 return `
-                    <button class="tile" type="button" data-photo="${src}">
+                    <button class="tile" type="button" data-photo="${src}" data-download="${downloadSrc}">
                         <img src="${src}" alt="Foto ${index + 1} de la fiesta de Emma" loading="lazy">
                         <span class="tile-label">${sticker}</span>
                     </button>
@@ -390,13 +402,14 @@
 
             gallery.querySelectorAll('.tile').forEach((tile) => {
                 tile.addEventListener('click', () => {
-                    openViewer(tile.dataset.photo);
+                    openViewer(tile.dataset.photo, tile.dataset.download);
                 });
             });
         }
 
-        function openViewer(photoPath) {
+        function openViewer(photoPath, downloadPath) {
             selectedPhotoPath = photoPath;
+            selectedDownloadPath = downloadPath;
             viewerImage.src = photoPath;
             codePanel.classList.remove('open');
             codeStatus.textContent = '';
@@ -430,7 +443,7 @@
             if (secretInput.value === SECRET_CODE) {
                 codeStatus.textContent = 'Codigo correcto. Descarga iniciada.';
                 codeStatus.className = 'code-status success';
-                triggerDownload(selectedPhotoPath);
+                triggerDownload(selectedDownloadPath || selectedPhotoPath);
             } else {
                 codeStatus.textContent = 'Codigo incorrecto. Intenta de nuevo.';
                 codeStatus.className = 'code-status error';
